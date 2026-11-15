@@ -23,12 +23,15 @@ jobs:
           - os: macos-latest
             bundles: app,dmg
             artifact: macos-apple-silicon
+            arch: arm64
           - os: macos-15-intel
             bundles: app,dmg
             artifact: macos-intel
+            arch: x86_64
           - os: windows-latest
             bundles: nsis
             artifact: windows-x64
+            arch: x86_64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +57,15 @@ jobs:
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
       - run: cargo test --manifest-path src-tauri/Cargo.toml --locked
       - run: npm run tauri -- build --bundles ${{ matrix.bundles }}
+      - name: Verify macOS DMG and application signature
+        if: runner.os == 'macOS'
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        shell: bash
+        run: |
+          dmgs=(src-tauri/target/release/bundle/dmg/*.dmg)
+          test "${#dmgs[@]}" -eq 1
+          bash scripts/verify-macos.sh "${dmgs[0]}" "$EXPECTED_ARCH" "$(node -p "require('./package.json').version")"
       - uses: actions/upload-artifact@v4
         with:
           name: qrcode-generator-${{ matrix.artifact }}

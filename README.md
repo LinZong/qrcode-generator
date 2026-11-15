@@ -61,7 +61,17 @@ npm run tauri -- build --bundles nsis
 
 Outputs are under `src-tauri/target/release/bundle/`. For a faster local application bundle on macOS, use `npm run tauri -- build --debug --bundles app` (output under `src-tauri/target/debug/bundle/`).
 
-GitHub Actions checks and builds macOS Apple Silicon, macOS Intel, and Windows x64 on pushes to `main`/`master`, version tags, pull requests, and manual runs. Installers are downloadable workflow artifacts. Pushing a `v*` tag automatically publishes a GitHub Release with all three installers after every build succeeds. Builds are unsigned; production code signing, Apple notarization, and store distribution require separately configured credentials.
+GitHub Actions checks and builds macOS Apple Silicon, macOS Intel, and Windows x64 on pushes to `main`/`master`, version tags, pull requests, and manual runs. Installers are downloadable workflow artifacts. Pushing a `v*` tag automatically publishes a GitHub Release with all three installers after every build succeeds.
+
+macOS bundles use a complete **ad-hoc signature** (`signingIdentity: "-"`). CI mounts each finished DMG read-only and checks its integrity, app version, architecture, sealed resources, and strict code-signature validity before uploading it. To run the same check locally:
+
+```sh
+bash scripts/verify-macos.sh "src-tauri/target/release/bundle/dmg/QR Code Generator_1.0.1_aarch64.dmg" arm64 1.0.1
+```
+
+The `npm run tauri` entry point prefers Apple's system tools on macOS, avoiding signing failures when an incompatible Homebrew `xattr` shadows `/usr/bin/xattr`. Other platforms keep their normal tool paths.
+
+Ad-hoc signing fixes bundle integrity but does not establish an Apple-verified publisher or provide notarization. macOS may still require approval in Privacy & Security on first launch. Developer ID signing, Apple notarization, and store distribution require separately configured certificates and credentials. See [Tauri's signing guide](https://v2.tauri.app/distribute/sign/macos/#ad-hoc-signing). Windows installers are unsigned.
 
 To publish a new version, update `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`, then refresh both lockfiles. Commit the changes and push a matching annotated tag:
 
