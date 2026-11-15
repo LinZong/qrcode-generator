@@ -61,6 +61,16 @@ npm run tauri -- build --bundles nsis
 
 Outputs are under `src-tauri/target/release/bundle/`. For a faster local application bundle on macOS, use `npm run tauri -- build --debug --bundles app` (output under `src-tauri/target/debug/bundle/`).
 
+To remove previous build outputs and caches (works on macOS, Windows, and Linux):
+
+```sh
+npm run clean:frontend # Remove dist/ and tsconfig.tsbuildinfo
+npm run clean:tauri    # Remove src-tauri/target/, including installers and Rust build caches
+npm run clean          # Run both cleanup commands
+```
+
+The next native build after `clean:tauri` will recompile Rust dependencies.
+
 GitHub Actions checks and builds macOS Apple Silicon, macOS Intel, and Windows x64 on pushes to `main`/`master`, version tags, pull requests, and manual runs. Installers are downloadable workflow artifacts. Pushing a `v*` tag automatically publishes a GitHub Release with all three installers after every build succeeds.
 
 macOS bundles use a complete **ad-hoc signature** (`signingIdentity: "-"`). CI mounts each finished DMG read-only and checks its integrity, app version, architecture, sealed resources, and strict code-signature validity before uploading it. To run the same check locally:
