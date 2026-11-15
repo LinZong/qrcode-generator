@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-capability",
+  "description": "Generate QR codes, save to user-selected files, write clipboard images, and persist local history.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:image:allow-new",
+    "dialog:allow-save",
+    "fs:allow-write-file",
+    "clipboard-manager:allow-write-image",
+    "store:default"
+  ]
+}
